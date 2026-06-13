@@ -1,0 +1,252 @@
+# Copyright (C) 2026 bPlugins
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Stepped Content 1.0.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/stepped-content\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-13T06:52:31+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: stepped-content\n"
+
+#. Plugin Name of the plugin
+#: index.php
+#: includes/admin/SubMenu.php:30
+#: build/admin/dashboard.js:1
+msgid "Stepped Content"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: index.php
+msgid "https://bplugins.com/products/stepped-content"
+msgstr ""
+
+#. Description of the plugin
+#: index.php
+msgid "Seamlessly organize your information into interactive steps."
+msgstr ""
+
+#. Author of the plugin
+#: index.php
+msgid "bPlugins"
+msgstr ""
+
+#. Author URI of the plugin
+#: index.php
+msgid "https://bplugins.com"
+msgstr ""
+
+#: includes/admin/SubMenu.php:29
+msgid "Stepped Content - bPlugins"
+msgstr ""
+
+#: index.php:102
+msgid "Help & Demos"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Welcome"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Demos"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Pricing"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Feature Comparison"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Stepped Content - Organize Content into Step-by-Step Format"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "A powerful Gutenberg plugin for WordPress, revolutionizes content presentation. Seamlessly organize your information into interactive steps or tabs."
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Start Now"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Steps"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Tabs"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Navigation"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Customization"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Features"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Gutenberg"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Add the Stepped Content Block"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Open the block editor on any page or post. Click the <strong>+</strong> icon in the top-left corner or type <strong>/Stepped Content</strong> to find and insert the Stepped Content block."
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Open Editor"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Add Steps & Content"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Click the <strong>Add New Step</strong> button inside the block to add steps. Customize each step's background (image or color), title, and content settings."
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Configure Steps & Publish"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Select the parent block to configure layout settings in the sidebar: adjust step styles, transitions, navigation/pagination, and layout structure. Publish when ready."
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Show or hide top navigation bar"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Customize the appearance of the sidebar"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Configure dynamic back button content options"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Advanced theme and text color settings"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Custom backgrounds for every content step"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "See All Demos"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Default View"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Without Navbar"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "List Range Sidebar"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Icon in Back and Next button"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Buy Now ➜"
+msgstr ""
+
+#: build/admin/dashboard.js:1
+msgid "Best Value"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Close Menu"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Open Menu"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Please add a step!"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Previous step"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Document Complete"
+msgstr ""
+
+#: build/content/view.js:1
+msgid "Next step"
+msgstr ""
+
+#: build/content/block.json
+msgctxt "block title"
+msgid "Stepped Content"
+msgstr ""
+
+#: build/content/block.json
+msgctxt "block description"
+msgid "Seamlessly organize your information into interactive steps."
+msgstr ""
+
+#: build/content/block.json
+msgctxt "block keyword"
+msgid "steps"
+msgstr ""
+
+#: build/content/block.json
+msgctxt "block keyword"
+msgid "tabs"
+msgstr ""
+
+#: build/content/block.json
+msgctxt "block keyword"
+msgid "tabs content"
+msgstr ""
+
+#: build/step/block.json
+msgctxt "block title"
+msgid "Step"
+msgstr ""
+
+#: build/step/block.json
+msgctxt "block description"
+msgid "Single step for step content."
+msgstr ""
+
+#: build/step/block.json
+msgctxt "block keyword"
+msgid "step"
+msgstr ""
+
+#: build/step/block.json
+msgctxt "block keyword"
+msgid "documentation"
+msgstr ""
+
+#: build/step/block.json
+msgctxt "block keyword"
+msgid "step content"
+msgstr ""

@@ -1,0 +1,1 @@
+export const pricingUrl = typeof stppricingurl !== 'undefined' ? stppricingurl : 'https://bplugins.com/products/stepped-content/pricing/';
