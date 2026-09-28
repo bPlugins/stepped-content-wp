@@ -1,9 +1,9 @@
-=== Stepped Content – Organize Content into Step-by-Step Format ===
+=== Stepped Content – Guide readers through content one step at a time ===
 Contributors: bplugins, abuhayat, charlescormier
 Donate link: https://www.buymeacoffee.com/abuhayat
 Tags: block, stepped, documentation, stepped content, Gutenberg block
 Requires at least: 6.5
-Tested up to: 7.0
+Tested up to: 7.1
 Stable tag: 1.0.7
 Requires PHP: 7.4
 License: GPLv3 or later
@@ -17,6 +17,8 @@ A powerful Gutenberg plugin for WordPress, revolutionizes content presentation. 
 [**Stepped Content**](https://bplugins.com/products/stepped-content/) | [**Pricing**](https://bplugins.com/products/stepped-content/pricing/) | [**Support**](https://bplugins.com/support/) | [**Demo**](https://bplugins.com/products/stepped-content/#demos)
 
 [**Stepped Content**](https://bplugins.com/products/stepped-content/) is a powerful Gutenberg plugin that transforms long content into engaging, guided steps. Instead of overwhelming visitors with large blocks of text, you can break information into simple, digestible sections, boosting readability and user engagement.
+
+https://youtube.com/watch?v=JbzoE-_RITM
 
 Whether you're creating tutorials, onboarding flows, guides, lessons, courses, or feature walkthroughs, Stepped Content gives you clean navigation, customizable layouts, and flexible design controls.
 
@@ -218,7 +220,7 @@ This plugin bundles the following third-party JavaScript/PHP libraries.
 * **GitHub:** [https://github.com/bPlugins/freemius-lite-sdk](https://github.com/bPlugins/freemius-lite-sdk)
 * **License:** GPL-2.0-or-later – [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 * **Purpose:** Provides an opt-in consent form for usage tracking and analytics to help improve the plugin. No data is sent before explicit user consent.
-* **External Services:** Communicates with `api.bplugins.com` (activation events) and `wp.freemius.com` (opt-in processing) only after user opt-in. See [bPlugins Privacy Policy](https://bplugins.com/privacy-policy) and [Freemius Privacy Policy](https://freemius.com/privacy/).
+* **External Services:** Communicates with `api.bplugins.com` (activation events) and `wp.freemius.com` (opt-in processing) only after user opt-in. See [bPlugins Privacy Policy](https://bplugins.com/privacy-policy/) and [Freemius Privacy Policy](https://freemius.com/privacy/).
 
 = Freemius SDK =
 * **Source:** [https://freemius.com/](https://freemius.com/)

@@ -34,19 +34,20 @@ const STEP_TEMPLATE = [
 ];
 
 const Edit = props => {
-	const { attributes, setAttributes, clientId, currentStep } = props;
+	const { attributes, setAttributes, currentStep } = props;
 	const { background, contentColor, isTitle, title } = attributes;
+	const blockProps = useBlockProps({ className: prefix });
 
 	useEffect(() => {
 		setAttributes({ step: currentStep });
 	}, [currentStep]);
 
-	const id = `${prefix}-${clientId}`;
+	const id = blockProps.id;
 
 	return <>
 		<Settings attributes={attributes} setAttributes={setAttributes} />
 
-		<div {...useBlockProps({ className: prefix })} id={id}>
+		<div {...blockProps} id={id}>
 			<style dangerouslySetInnerHTML={{
 				__html: `
 				#${id} .instructions{

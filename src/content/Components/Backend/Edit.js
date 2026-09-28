@@ -3,13 +3,13 @@ import { compose } from '@wordpress/compose';
 import { withSelect, withDispatch } from '@wordpress/data';
 import { InnerBlocks, useBlockProps } from '@wordpress/block-editor';
 
+import useIframeAssetSync from '../../../../../bpl-tools/hooks/useIframeAssetSync';
 import { tabController } from '../../../../../bpl-tools/utils/functions';
 
 import useStep from '../../../utils/useStep';
 import Settings from './Settings/Settings';
 import Style from '../Common/Style';
 import SteppedContent from '../Common/SteppedContent';
-import { prefix } from '../../utils/data';
 
 const INNER_BLOCKS_TEMPLATE = [
 	['stp/step', { title: 'Digital Marketing', duration: { h: 0, m: 4, s: 25 } }],
@@ -19,8 +19,11 @@ const INNER_BLOCKS_TEMPLATE = [
 ];
 
 const Edit = props => {
-	const { attributes, setAttributes, clientId, isSelected, innerBlocks } = props;
+	const { attributes, setAttributes, isSelected, innerBlocks } = props;
 	const { data } = attributes;
+	const blockProps = useBlockProps();
+
+	useIframeAssetSync(['stp-content-editor-style-css', 'stp-content-style-css']);
 
 	useEffect(() => tabController(), [isSelected]);
 
@@ -28,7 +31,7 @@ const Edit = props => {
 	const [stepUpdateType, setStepUpdateType] = useState('')
 	const [childClientIds, setChildClientIds] = useState(childClients);
 
-	const id = `${prefix}-${clientId}`;
+	const id = blockProps.id;
 
 	const allStepEls = document.querySelectorAll(`#${id} .stpSteps > .block-editor-inner-blocks > .block-editor-block-list__layout > div[data-type='stp/step']`);
 	const { step, onSetStep, minuteText, secondText } = useStep(data, allStepEls);
@@ -71,7 +74,7 @@ const Edit = props => {
 	return <>
 		<Settings attributes={attributes} setAttributes={setAttributes} />
 
-		<div {...useBlockProps()} id={id}>
+		<div {...blockProps} id={id}>
 			<Style attributes={attributes} id={id} />
 
 			<SteppedContent attributes={attributes} useStep={{ step, onSetStep, minuteText, secondText }}>

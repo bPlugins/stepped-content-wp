@@ -5,12 +5,12 @@
  * Version: 1.0.7
  * Author: bPlugins
  * Author URI: https://bplugins.com
- * Plugin URI: https://bplugins.com/products/stepped-content
+ * Plugin URI: https://bplugins.com/products/stepped-content/
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.txt
  * Text Domain: stepped-content
  * Requires at least: 6.5
- * Tested up to: 7.0
+ * Tested up to: 7.1
  * Requires PHP: 7.4
  * @fs_free_only /vendor/freemius-lite, /includes/fs-lite.php
  */
