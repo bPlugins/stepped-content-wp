@@ -12,13 +12,14 @@
 		"format": "wp-scripts format",
 		"start": "wp-scripts start --webpack-copy-php",
 		"build": "wp-scripts build --webpack-copy-php",
-		"i18n-pot": "wp i18n make-pot . languages/stepped-content.pot --exclude=\"src\" && cp ./languages/stepped-content.pot ./languages/stepped-content-en_US.po",
+		"clean:cache": "rm -rf node_modules/.cache/babel-loader languages/stepped-content-js.pot",
+		"i18n-pot": "node ../bpl-tools/i18n/normalize-js-pot.js stepped-content && wp i18n make-pot . languages/stepped-content.pot --exclude=\"src\" --merge=languages/stepped-content-js.pot && cp ./languages/stepped-content.pot ./languages/stepped-content-en_US.po",
 		"i18n-json": "wp i18n make-json languages/ --no-purge",
 		"i18n-mo": "wp i18n make-mo languages/",
 		"i18n": "npm run i18n-pot && npm run i18n-json && npm run i18n-mo",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"zip": "zip -r stepped-content.zip build includes languages vendor index.php readme.txt",
-		"bundle": "gulp clean && npm run lint && npm run build && npm run i18n && find . -name '.DS_Store' -delete && npm run zip",
+		"bundle": "gulp clean && npm run clean:cache && npm run lint && npm run build && npm run i18n && find . -name '.DS_Store' -delete && npm run zip",
 		"fs-deploy": "gulp freemius-deploy"
 	},
 	"dependencies": {

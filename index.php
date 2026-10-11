@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Stepped Content
  * Description: Seamlessly organize your information into interactive steps.
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: bPlugins
  * Author URI: https://bplugins.com
  * Plugin URI: https://bplugins.com/products/stepped-content/
@@ -21,7 +21,7 @@ if ( !defined( 'ABSPATH' ) ) { exit; }
 if ( function_exists( 'stp_fs' ) ) {
 	stp_fs()->set_basename( true, __FILE__ );
 } else {
-	define( 'STP_VERSION', ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? time() : '1.0.7' );
+	define( 'STP_VERSION', ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? time() : '1.0.8' );
 	define( 'STP_DIR_URL', plugin_dir_url( __FILE__ ) );
 	define( 'STP_DIR_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -116,6 +116,10 @@ if ( function_exists( 'stp_fs' ) ) {
 				register_block_type( __DIR__ . '/build/step' );
 
 				wp_deregister_script( 'stp-step-editor-script' );
+
+				// Core registers block.json scripts without a path, so local JSONs need this explicitly
+				wp_set_script_translations( 'stp-content-editor-script', 'stepped-content', STP_DIR_PATH . 'languages' );
+				wp_set_script_translations( 'stp-content-view-script', 'stepped-content', STP_DIR_PATH . 'languages' );
 			}
 
 			/**

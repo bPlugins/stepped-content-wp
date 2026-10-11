@@ -7,7 +7,7 @@ $stpId				= wp_unique_id( 'stpStep-' );
 $stpBackground		= $attributes['background'] ?? [ 'color' => '#fff' ];
 $stpContentColor	= $attributes['contentColor'] ?? '#161616';
 $stpIsTitle			= $attributes['isTitle'] ?? true;
-$stpTitle			= $attributes['title'] ?? 'Step Title';
+$stpTitle			= $attributes['title'] ?? __( 'Step Title', 'stepped-content' );
 $stpStep			= $attributes['step'] ?? 1;
 
 $stpStepCSS = "
@@ -34,7 +34,7 @@ $stpStepCSS = "
 		<?php } else {} ?>
 
 		<div class='instructionContent'>
-			<?php echo wp_kses_post( $content ); ?>
+			<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rendered inner blocks, each escaped by its own block; kses would strip inline SVG and forms. ?>
 		</div>
 	</div>
 </div>

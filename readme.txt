@@ -4,7 +4,7 @@ Donate link: https://www.buymeacoffee.com/abuhayat
 Tags: block, stepped, documentation, stepped content, Gutenberg block
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 Requires PHP: 7.4
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -177,6 +177,11 @@ You can post your questions on the [support forum here](https://wordpress.org/su
 
 
 == Changelog ==
+
+= 1.0.8 - 11 Oct 2026 =
+* **Fix:** Editor not switching step content when a step is selected from the menu.
+* **Fix:** Newly added step staying visible after switching to another step in the editor.
+* **Fix:** Blank step content after inserting the block or deleting the first step in the editor.
 
 = 1.0.7 - 13 Jun 2026 =
 * **Update:** SDK

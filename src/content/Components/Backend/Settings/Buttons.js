@@ -5,7 +5,7 @@ import { ColorsControl, Notice } from '../../../../../../bpl-tools/Components';
 
 const Buttons = ({ attributes, setAttributes, updateObj }) => {
 	const { buttons = {}, isDoneBtn, doneBtnLink } = attributes;
-	const { back = { content: 'text', text: 'Back', colors: { color: '#1a73e8', bg: '#fff' } }, next = { content: 'text', text: 'Next', colors: { color: '#fff', bg: '#1a73e8' } }, done = { text: 'Done', linkTab: '_self', colors: { color: '#fff', bg: '#1e8e3e' } } } = buttons;
+	const { back = { content: 'text', text: __('Back', 'stepped-content'), colors: { color: '#1a73e8', bg: '#fff' } }, next = { content: 'text', text: __('Next', 'stepped-content'), colors: { color: '#fff', bg: '#1a73e8' } }, done = { text: __('Done', 'stepped-content'), linkTab: '_self', colors: { color: '#fff', bg: '#1e8e3e' } } } = buttons;
 
 	return <PanelBody className='bPlPanelBody' title={__('Buttons', 'stepped-content')} initialOpen={false}>
 		<ColorsControl className='mt20' value={back.colors} onChange={val => updateObj('buttons', 'back', val, 'colors')} defaults={{ color: '#1a73e8', bg: '#fff' }} />

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { __ } from '@wordpress/i18n';
 import { withSelect } from '@wordpress/data';
 import { InnerBlocks, useBlockProps } from '@wordpress/block-editor';
 
@@ -9,14 +10,14 @@ import { prefix } from '../../utils/data';
 
 const STEP_TEMPLATE = [
 	['core/heading', {
-		content: 'The Renaissance of Artificial Intelligence.',
+		content: __('The Renaissance of Artificial Intelligence.', 'stepped-content'),
 		style: {
 			typography: { fontSize: '24px' }
 		}
 	}],
 
 	['core/paragraph', {
-		content: 'The resurgence of artificial intelligence (AI) has revolutionized industries worldwide, marking an era of unprecedented innovation. AI, driven by machine learning, neural networks, and deep learning algorithms, has permeated various domains, from healthcare and finance to entertainment and transportation. \n Its ability to process massive data sets, automate tasks, and mimic human cognition has led to transformative advancements. \n The quest for AI\'s potential knows no bounds, as scientists and technologists explore realms like autonomous vehicles, natural language processing, and personalized digital assistants.',
+		content: __('The resurgence of artificial intelligence (AI) has revolutionized industries worldwide, marking an era of unprecedented innovation. AI, driven by machine learning, neural networks, and deep learning algorithms, has permeated various domains, from healthcare and finance to entertainment and transportation. \n Its ability to process massive data sets, automate tasks, and mimic human cognition has led to transformative advancements. \n The quest for AI\'s potential knows no bounds, as scientists and technologists explore realms like autonomous vehicles, natural language processing, and personalized digital assistants.', 'stepped-content'),
 		style: {
 			typography: { fontSize: '16px' }
 		}

@@ -8,8 +8,8 @@ export const dashboardInfo = (info) => {
 	const { version, startUrl, adminUrl = '' } = info;
 
 	return {
-		name: __('Stepped Content', 'stepped-content'),
-		displayName: __('Stepped Content - Organize Content into Step-by-Step Format', 'stepped-content'),
+		name: `Stepped Content`,
+		displayName: `Stepped Content - ${__('Organize Content into Step-by-Step Format', 'stepped-content')}`,
 		description: __('A powerful Gutenberg plugin for WordPress, revolutionizes content presentation. Seamlessly organize your information into interactive steps or tabs.', 'stepped-content'),
 		slug,
 		version,
@@ -55,7 +55,7 @@ export const welcomeInfo = (adminUrl) => ({
 						num: 1,
 						title: __('Add the Stepped Content Block', 'stepped-content'),
 						body: __('Open the block editor on any page or post. Click the <strong>+</strong> icon in the top-left corner or type <strong>/Stepped Content</strong> to find and insert the Stepped Content block.', 'stepped-content'),
-						link: { url: `${adminUrl}/post-new.php?post_type=page`, label: __('Open Editor', 'stepped-content') }
+						link: { url: `${adminUrl}post-new.php?post_type=page`, label: __('Open Editor', 'stepped-content') }
 					},
 					{
 						num: 2,
@@ -72,6 +72,15 @@ export const welcomeInfo = (adminUrl) => ({
 		]
 	},
 	changelogs: [
+		{
+			version: '1.0.8 - 11 Oct 2026',
+			type: 'fix',
+			list: [
+				'Fix: Editor not switching step content when a step is selected from the menu.',
+				'Fix: Newly added step staying visible after switching to another step in the editor.',
+				'Fix: Blank step content after inserting the block or deleting the first step in the editor.'
+			]
+		},
 		{
 			version: '1.0.7 - 13 Jun 2026',
 			type: 'update',
@@ -118,7 +127,7 @@ export const welcomeInfo = (adminUrl) => ({
 		}
 	],
 	changelogsLimit: 5,
-	changelogsReadMoreLabel: 'View More Changelogs',
+	changelogsReadMoreLabel: __('View More Changelogs', 'stepped-content'),
 	proFeatures: [
 		__('Show or hide top navigation bar', 'stepped-content'),
 		__('Customize the appearance of the sidebar', 'stepped-content'),

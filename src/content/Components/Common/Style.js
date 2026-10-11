@@ -1,3 +1,5 @@
+import { __ } from '@wordpress/i18n';
+
 import { getBackgroundCSS, getColorsCSS } from '../../../../../bpl-tools/utils/getCSS';
 import { prefix } from '../../utils/data';
 
@@ -5,7 +7,7 @@ const Style = ({ attributes, id }) => {
 	const { layout = {}, navBGColor, titleColor, remainingTimeColor, stepsBG, menu = {}, buttons = {} } = attributes;
 	const { height } = layout;
 	const { themeColor = '#1a73e8', textColor = '#212121' } = menu;
-	const { back = { content: 'text', text: 'Back', colors: { color: '#1a73e8', bg: '#fff' } }, next = { content: 'text', text: 'Next', colors: { color: '#fff', bg: '#1a73e8' } }, done = { text: 'Done', linkTab: '_self', colors: { color: '#fff', bg: '#1e8e3e' } } } = buttons;
+	const { back = { content: 'text', text: __('Back', 'stepped-content'), colors: { color: '#1a73e8', bg: '#fff' } }, next = { content: 'text', text: __('Next', 'stepped-content'), colors: { color: '#fff', bg: '#1a73e8' } }, done = { text: __('Done', 'stepped-content'), linkTab: '_self', colors: { color: '#fff', bg: '#1e8e3e' } } } = buttons;
 
 	const mainSl = `#${id}`;
 	const navSl = `${mainSl} .stpNav`;
