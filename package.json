@@ -20,7 +20,10 @@
 		"plugin-zip": "wp-scripts plugin-zip",
 		"zip": "zip -r stepped-content.zip build includes languages vendor index.php readme.txt",
 		"bundle": "gulp clean && npm run clean:cache && npm run lint && npm run build && npm run i18n && find . -name '.DS_Store' -delete && npm run zip",
-		"fs-deploy": "gulp freemius-deploy"
+		"fs-deploy": "gulp freemius-deploy",
+		"push:testing": "bash bin/push-testing.sh",
+		"release": "bash bin/release.sh",
+		"ship": "npm run bundle && git add -A build languages && (git diff --cached --quiet || git commit -m \"Build $(grep -m1 \"Version:\" index.php | sed -E \"s/.*Version: *//\" | tr -d \"\\r \")\") && git push origin development && npm run push:testing"
 	},
 	"dependencies": {
 		"immer": "^10.1.1",

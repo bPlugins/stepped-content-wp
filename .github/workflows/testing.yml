@@ -1,0 +1,44 @@
+name: Testing branch
+
+# `npm run push:testing` copies the shipping files from `development` to the
+# `testing` branch and pushes. Every push here runs the full gate set.
+# Green → `npm run release` tags this exact tree.
+
+on:
+  push:
+    branches: [testing]
+  workflow_dispatch:
+
+concurrency:
+  group: testing-${{ github.ref }}
+  cancel-in-progress: true   # a newer push supersedes the older run
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
+    with:
+      slug: stepped-content
+      main_file: index.php
+      phpcs_ignore: '*/node_modules/*'
+      plugin_check_blocking: true
+    secrets: inherit
+
+  result:
+    name: Result
+    needs: checks
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULT: ${{ needs.checks.result }}
+        run: |
+          if [ "$RESULT" = "success" ]; then
+            echo "✅ testing @ ${GITHUB_SHA::7} passed every check. Run \`npm run release\` from development to tag it." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Checks: $RESULT — fix on development, then \`npm run push:testing\` again." >> "$GITHUB_STEP_SUMMARY"; exit 1
+          fi

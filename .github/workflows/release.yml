@@ -1,0 +1,110 @@
+name: Release → WordPress.org
+
+# `npm run release` (from development, after testing is green) tags the
+# `testing` commit as 1.0.9 and pushes the tag. This workflow then:
+#   1. re-runs every gate on the tagged tree (checks.yml)
+#   2. verifies tag = Version header = readme Stable tag
+#   3. refuses if tags/1.0.9 already exists on WordPress.org
+#   4. packs stepped-content-1.0.9.zip and publishes a GitHub Release
+#   5. commits the tree to WordPress.org SVN (trunk + tags/1.0.9)
+#
+# Secrets: SVN_USERNAME, SVN_PASSWORD (a committer on the wordpress.org plugin)
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:   # re-run for the tag selected in "Use workflow from"
+
+env:
+  SLUG: stepped-content
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false   # never interrupt an SVN commit
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
+    with:
+      slug: stepped-content
+      main_file: index.php
+      phpcs_ignore: '*/node_modules/*'
+      plugin_check_blocking: true
+    secrets: inherit
+
+  release:
+    name: Publish + deploy
+    needs: checks   # runs only when EVERY job in checks.yml succeeded
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write   # GitHub Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ env.SLUG }}
+
+      - name: Verify tag = Version = Stable tag
+        id: ver
+        working-directory: ${{ env.SLUG }}
+        run: |
+          VERSION="$GITHUB_REF_NAME"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::'$VERSION' is not a version tag"; exit 1; }
+          HEADER=$(grep -m1 -iE '^\s*\*?\s*Version:' index.php | sed -E 's/.*Version:\s*//' | tr -d '\r ')
+          STABLE=$(grep -m1 -iE '^\s*Stable tag:' readme.txt | sed -E 's/.*Stable tag:\s*//' | tr -d '\r ')
+          echo "tag=$VERSION header=$HEADER stable=$STABLE"
+          [ "$HEADER" = "$VERSION" ] || { echo "::error::index.php Version is $HEADER, tag is $VERSION"; exit 1; }
+          [ "$STABLE" = "$VERSION" ] || { echo "::error::readme.txt Stable tag is $STABLE, tag is $VERSION"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install Subversion
+        run: sudo apt-get update -q && sudo apt-get install -y -q subversion
+
+      - name: Refuse to overwrite a published version
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          if svn ls "https://plugins.svn.wordpress.org/$SLUG/tags/$VERSION/" >/dev/null 2>&1; then
+            echo "::error::tags/$VERSION already exists on WordPress.org — bump the version instead"; exit 1
+          fi
+          echo "tags/$VERSION is free on WordPress.org"
+
+      # The tag's tree is already the shipping set; only CI files are stripped.
+      - name: Stage distribution tree + zip
+        id: dist
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          rm -rf dist && mkdir -p "dist/$SLUG"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='.DS_Store' "$SLUG/" "dist/$SLUG/"
+          ZIP="$SLUG-$VERSION.zip"
+          (cd dist && zip -rq "../$ZIP" "$SLUG")
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "dir=dist/$SLUG" >> "$GITHUB_OUTPUT"
+          { echo "### Shipping $SLUG $VERSION"; echo '```'; unzip -l "$ZIP" | tail -n +4; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ env.SLUG }} ${{ steps.ver.outputs.version }}
+          files: ${{ steps.dist.outputs.zip }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit to WordPress.org SVN
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ${{ env.SLUG }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          BUILD_DIR: ${{ steps.dist.outputs.dir }}
+          ASSETS_DIR: ${{ env.SLUG }}/.wordpress-org   # banners/icons/screenshots, if you add that folder
+
+      - name: Summary
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: echo "✅ $SLUG $VERSION is on https://plugins.trac.wordpress.org/browser/$SLUG/tags/$VERSION" >> "$GITHUB_STEP_SUMMARY"

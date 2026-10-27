@@ -1,0 +1,230 @@
+name: Checks
+
+# Reusable workflow — the quality gates for a SHIPPING tree (the `testing`
+# branch or a release tag). It never builds: the tree it receives is exactly
+# what ships, so what it tests is what users get.
+#
+# Called by testing.yml and release.yml. Never triggers on its own.
+#
+# Gates (blocking):
+#   lint          php -l on every PHP file, PHP 7.4 and 8.3
+#   lint          PHPCompatibilityWP: no syntax/function newer than PHP 7.4
+#   plugin-check  WordPress.org's official Plugin Check (errors only)
+#   wpcli         WP-CLI smoke: install WP, activate, fire hooks, load pages,
+#                 deactivate/re-activate; fail on ANY PHP error in debug.log
+# Report-only (annotated, never fails):
+#   lint          WordPress coding standards (WPCS)
+
+on:
+  workflow_call:
+    inputs:
+      slug:
+        description: Plugin folder name (= WordPress.org slug)
+        required: true
+        type: string
+      main_file:
+        description: Main plugin file inside the folder
+        required: false
+        default: index.php
+        type: string
+      phpcs_ignore:
+        description: Comma-separated path patterns PHPCS skips (relative to the plugin folder)
+        required: false
+        default: '*/node_modules/*'
+        type: string
+      debug_ignore:
+        description: Extended regex; debug.log lines matching it are NOT counted as failures
+        required: false
+        default: '^$'
+        type: string
+      plugin_check_blocking:
+        description: Fail the run on Plugin Check errors
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  lint:
+    name: PHP lint + compatibility (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.slug }}
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2, cs2pr
+
+      - name: Version header vs readme Stable tag
+        if: matrix.php == '7.4'
+        working-directory: ${{ inputs.slug }}
+        run: |
+          HEADER=$(grep -m1 -iE '^\s*\*?\s*Version:' "${{ inputs.main_file }}" | sed -E 's/.*Version:\s*//' | tr -d '\r ')
+          STABLE=$(grep -m1 -iE '^\s*Stable tag:' readme.txt | sed -E 's/.*Stable tag:\s*//' | tr -d '\r ')
+          echo "Version: $HEADER · Stable tag: $STABLE"
+          [ -n "$HEADER" ] && [ "$HEADER" = "$STABLE" ] || { echo "::error::${{ inputs.main_file }} Version ($HEADER) and readme.txt Stable tag ($STABLE) differ"; exit 1; }
+          echo "version=$HEADER" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: php -l every PHP file
+        working-directory: ${{ inputs.slug }}
+        run: |
+          set -o pipefail
+          find . -type f -name '*.php' -not -path '*/node_modules/*' -print0 \
+            | xargs -0 -n1 -P4 php -l 2>&1 | { grep -v '^No syntax errors' || true; } | tee lint.txt
+          if grep -q 'error' lint.txt; then echo "::error::PHP syntax errors on ${{ matrix.php }} (see above)"; exit 1; fi
+          echo "php -l clean on PHP ${{ matrix.php }}"
+
+      - name: Install PHPCS standards
+        if: matrix.php == '7.4'
+        run: |
+          composer global config --no-interaction allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --no-interaction --no-progress \
+            wp-coding-standards/wpcs:^3 \
+            phpcompatibility/phpcompatibility-wp:^2 \
+            dealerdirect/phpcodesniffer-composer-installer:^1
+          echo "$(composer global config bin-dir --absolute --quiet)" >> "$GITHUB_PATH"
+
+      - name: PHP 7.4+ compatibility (blocking)
+        if: matrix.php == '7.4'
+        working-directory: ${{ inputs.slug }}
+        run: |
+          set -o pipefail
+          phpcs -q --standard=PHPCompatibilityWP --runtime-set testVersion 7.4- \
+            --extensions=php --ignore='${{ inputs.phpcs_ignore }}' \
+            --report=checkstyle . | cs2pr --graceful-warnings
+
+      - name: WordPress coding standards (report only)
+        if: matrix.php == '7.4'
+        continue-on-error: true
+        working-directory: ${{ inputs.slug }}
+        run: |
+          set -o pipefail
+          phpcs -q --standard=WordPress --extensions=php --ignore='${{ inputs.phpcs_ignore }}' \
+            --report=checkstyle . | cs2pr --graceful-warnings --notices-as-warnings
+
+  # ---------------------------------------------------------------------------
+  plugin-check:
+    name: WordPress Plugin Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.slug }}
+          persist-credentials: false
+
+      - name: Run Plugin Check
+        uses: WordPress/plugin-check-action@v1
+        continue-on-error: ${{ !inputs.plugin_check_blocking }}
+        with:
+          build-dir: ./${{ inputs.slug }}
+          slug: ${{ inputs.slug }}
+          ignore-warnings: true          # .org review blocks on errors; warnings are advisory
+          exclude-directories: node_modules
+
+  # ---------------------------------------------------------------------------
+  wpcli:
+    name: WP-CLI smoke test (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3']
+    env:
+      SLUG: ${{ inputs.slug }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ inputs.slug }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # wp-env config is generated here, not committed: the shipping tree must
+      # stay free of dev files.
+      - name: Write wp-env config
+        env:
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          cat > .wp-env.json <<EOF
+          {
+            "phpVersion": "$PHP_VERSION",
+            "plugins": [ "./$SLUG" ],
+            "config": { "WP_DEBUG": true, "WP_DEBUG_LOG": true, "WP_DEBUG_DISPLAY": false, "SCRIPT_DEBUG": false }
+          }
+          EOF
+          cat .wp-env.json
+
+      - name: Start WordPress environment
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 2
+          command: npx -y @wordpress/env@10 start
+
+      - name: Activate the plugin
+        run: |
+          wp() { npx -y @wordpress/env@10 run cli wp "$@"; }
+          wp core version
+          wp plugin deactivate "$SLUG" || true
+          wp plugin activate "$SLUG"
+          wp plugin get "$SLUG" --fields=name,version,status
+
+      - name: Exercise the site with the plugin active
+        run: |
+          wp() { npx -y @wordpress/env@10 run cli wp "$@"; }
+          wp eval 'do_action( "admin_init" ); echo "admin_init ok\n";'
+          wp eval 'do_action( "rest_api_init" ); echo "rest_api_init ok\n";'
+          wp eval 'echo count( WP_Block_Type_Registry::get_instance()->get_all_registered() ), " block types registered\n";'
+          wp post create --post_type=post --post_status=publish --post_title='CI smoke post' --post_content='<!-- wp:paragraph --><p>hello</p><!-- /wp:paragraph -->' --porcelain
+          curl -sfS -o /dev/null -w "front page: %{http_code}\n"  http://localhost:8888/
+          curl -sfS -o /dev/null -w "REST index: %{http_code}\n"  "http://localhost:8888/?rest_route=/"
+          curl -sfS -o /dev/null -w "block types: %{http_code}\n" "http://localhost:8888/?rest_route=/wp/v2/block-types&context=view"
+
+      - name: Deactivate + re-activate (hooks must be idempotent)
+        run: |
+          wp() { npx -y @wordpress/env@10 run cli wp "$@"; }
+          wp plugin deactivate "$SLUG"
+          wp plugin activate "$SLUG"
+
+      - name: Fail on PHP errors in debug.log
+        env:
+          IGNORE: ${{ inputs.debug_ignore }}
+        run: |
+          npx -y @wordpress/env@10 run cli --env-cwd=wp-content cat debug.log > wp-debug.log 2>/dev/null || true
+          if [ -s wp-debug.log ]; then echo "::group::wp-content/debug.log"; cat wp-debug.log; echo "::endgroup::"; else echo "debug.log is empty"; fi
+          BAD=$(grep -iE "PHP (Fatal|Parse|Warning|Notice|Deprecated)" wp-debug.log | grep "plugins/$SLUG/" | grep -vE "$IGNORE" || true)
+          if [ -n "$BAD" ]; then
+            echo "$BAD"
+            echo "::error::The plugin wrote PHP errors/warnings/notices to debug.log on PHP ${{ matrix.php }}"
+            exit 1
+          fi
+          echo "No PHP errors from plugins/$SLUG/ on PHP ${{ matrix.php }}"
+
+      - name: Upload debug log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-log-php${{ matrix.php }}
+          path: wp-debug.log
+          if-no-files-found: ignore
+          retention-days: 7
