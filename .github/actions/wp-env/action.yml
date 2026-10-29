@@ -1,9 +1,9 @@
 name: Start wp-env
 description: >
   Starts a WordPress environment (wp-env) with the plugin active, on the given PHP
-  version. Pre-seeds the Docker images from a cache or AWS's mirror of the official
-  images, so `wp-env start` never depends on anonymous Docker Hub pulls, and patches
-  the PHP 7.4 / 8.0 images whose Debian 11 apt archive is gone.
+  version. Pulls the Docker images up front through a Docker Hub mirror (or restores
+  them from the weekly cache) and patches the PHP 7.4 / 8.0 images whose Debian 11
+  apt archive is gone, before wp-env builds on them.
 
 inputs:
   php:
@@ -87,17 +87,16 @@ runs:
         else
           mkdir -p "$(dirname "$TAR")"
           complete=true
+          # Through the mirror configured above (AWS's public ECR mirror has an anonymous data quota
+          # that shared runners exhaust). A miss here is not fatal: wp-env pulls the image itself.
           for img in $IMAGES; do
             pulled=false
             for attempt in 1 2 3; do
-              if docker pull "public.ecr.aws/docker/library/$img"; then pulled=true; break; fi
+              if docker pull "$img"; then pulled=true; break; fi
               sleep 15
             done
-            if [ "$pulled" = true ]; then
-              docker tag "public.ecr.aws/docker/library/$img" "$img"
-              docker rmi "public.ecr.aws/docker/library/$img" >/dev/null
-            else
-              echo "::warning::could not pre-seed $img from the ECR mirror; wp-env will pull it from Docker Hub"
+            if [ "$pulled" != true ]; then
+              echo "::warning::could not pre-pull $img; wp-env will pull it during start"
               complete=false
             fi
           done
@@ -111,6 +110,10 @@ runs:
                 && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99-archive; \
             fi
         EOF
+          docker image inspect "$WP_IMAGE" --format 'patched {{.Id}}'
+        else
+          echo "::error::$WP_IMAGE is not available locally, so the Debian 11 apt patch cannot be applied (PHP 7.4/8.0 will fail to build)"
+          [ "$PHP_VERSION" = "7.4" ] || [ "$PHP_VERSION" = "8.0" ] && exit 1
         fi
         if [ "$complete" = true ]; then docker save -o "$TAR" $IMAGES; fi
         docker image ls
