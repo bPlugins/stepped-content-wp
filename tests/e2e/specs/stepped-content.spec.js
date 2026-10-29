@@ -77,8 +77,9 @@ test.describe('Stepped Content', () => {
 		await page.getByRole('button', { name: 'Publish', exact: true }).click();
 		await page.getByLabel('Editor publish').getByRole('button', { name: 'Publish', exact: true }).click();
 		await expect(page.getByRole('link', { name: /view post/i }).first()).toBeVisible();
-		const postId = new URL(page.url()).searchParams.get('post');
-		expect(postId, 'editor URL carries the post id after publishing').toBeTruthy();
+		// The editor URL stays post-new.php for a while after publishing; the store knows the id straight away
+		const postId = await page.evaluate(() => window.wp.data.select('core/editor').getCurrentPostId());
+		expect(postId, 'editor store carries the post id after publishing').toBeTruthy();
 		postUrl = `/?p=${postId}`;
 
 		expect(errors, 'uncaught JS errors in the editor').toEqual([]);
