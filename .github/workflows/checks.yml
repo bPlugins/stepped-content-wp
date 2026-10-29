@@ -44,8 +44,7 @@ on:
         type: boolean
 
 permissions:
-  contents: read
-  checks: write
+  contents: read   # cs2pr annotations only need the job log; no checks: write needed
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -76,8 +75,11 @@ jobs:
         run: |
           HEADER=$(grep -m1 -iE '^\s*\*?\s*Version:' "${{ inputs.main_file }}" | sed -E 's/.*Version:\s*//' | tr -d '\r ')
           STABLE=$(grep -m1 -iE '^\s*Stable tag:' readme.txt | sed -E 's/.*Stable tag:\s*//' | tr -d '\r ')
-          echo "Version: $HEADER · Stable tag: $STABLE"
+          # the *_VERSION define cache-busts the assets; a stale one ships old CSS/JS
+          CONST=$(grep -m1 -E "define\( *'[A-Z_]+_VERSION'" "${{ inputs.main_file }}" | grep -oE "'[0-9]+\.[0-9]+\.[0-9]+'" | tr -d "'")
+          echo "Version: $HEADER · Stable tag: $STABLE · _VERSION define: ${CONST:-none}"
           [ -n "$HEADER" ] && [ "$HEADER" = "$STABLE" ] || { echo "::error::${{ inputs.main_file }} Version ($HEADER) and readme.txt Stable tag ($STABLE) differ"; exit 1; }
+          [ -z "$CONST" ] || [ "$CONST" = "$HEADER" ] || { echo "::error::${{ inputs.main_file }} _VERSION define ($CONST) differs from the Version header ($HEADER)"; exit 1; }
           echo "version=$HEADER" >> "$GITHUB_STEP_SUMMARY"
 
       - name: php -l every PHP file
@@ -104,7 +106,9 @@ jobs:
         working-directory: ${{ inputs.slug }}
         run: |
           set -o pipefail
+          # ignore_warnings_on_exit: phpcs exits 1 on warnings alone, which pipefail would turn into a failure
           phpcs -q --standard=PHPCompatibilityWP --runtime-set testVersion 7.4- \
+            --runtime-set ignore_warnings_on_exit 1 \
             --extensions=php --ignore='${{ inputs.phpcs_ignore }}' \
             --report=checkstyle . | cs2pr --graceful-warnings
 
@@ -195,10 +199,18 @@ jobs:
           wp eval 'do_action( "admin_init" ); echo "admin_init ok\n";'
           wp eval 'do_action( "rest_api_init" ); echo "rest_api_init ok\n";'
           wp eval 'echo count( WP_Block_Type_Registry::get_instance()->get_all_registered() ), " block types registered\n";'
-          wp post create --post_type=post --post_status=publish --post_title='CI smoke post' --post_content='<!-- wp:paragraph --><p>hello</p><!-- /wp:paragraph -->' --porcelain
+          # A post that uses the plugin's own blocks, so render.php actually runs on the front end
+          POST_ID=$(wp post create --post_type=post --post_status=publish --post_title='CI smoke post' \
+            --post_content='<!-- wp:stp/content --><!-- wp:stp/step {"title":"CI step"} --><!-- wp:paragraph --><p>hello</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- /wp:stp/content -->' \
+            --porcelain | grep -oE '^[0-9]+$' | tail -n1)
+          echo "smoke post id: $POST_ID"
           curl -sfS -o /dev/null -w "front page: %{http_code}\n"  http://localhost:8888/
+          curl -sfS "http://localhost:8888/?p=$POST_ID" > post.html
+          grep -q 'stpContent-' post.html && echo "stp/content rendered on the post page" \
+            || { echo "::error::stp/content did not render on the smoke post"; exit 1; }
           curl -sfS -o /dev/null -w "REST index: %{http_code}\n"  "http://localhost:8888/?rest_route=/"
-          curl -sfS -o /dev/null -w "block types: %{http_code}\n" "http://localhost:8888/?rest_route=/wp/v2/block-types&context=view"
+          # block-types needs edit_posts (anonymous requests get 401), so ask as the wp-env admin
+          wp eval --user=admin '$r = rest_do_request( new WP_REST_Request( "GET", "/wp/v2/block-types" ) ); echo "block types: ", $r->get_status(), "\n"; exit( $r->is_error() ? 1 : 0 );'
 
       - name: Deactivate + re-activate (hooks must be idempotent)
         run: |

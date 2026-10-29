@@ -78,7 +78,7 @@ jobs:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
           rm -rf dist && mkdir -p "dist/$SLUG"
-          rsync -a --exclude='.git' --exclude='.github' --exclude='.DS_Store' "$SLUG/" "dist/$SLUG/"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='.gitignore' --exclude='.DS_Store' "$SLUG/" "dist/$SLUG/"
           ZIP="$SLUG-$VERSION.zip"
           (cd dist && zip -rq "../$ZIP" "$SLUG")
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"

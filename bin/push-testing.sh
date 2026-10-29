@@ -28,6 +28,8 @@ VERSION=$(grep -m1 -iE '^[[:space:]]*\*?[[:space:]]*Version:' "$MAIN_FILE" | sed
 STABLE=$(grep -m1 -iE '^[[:space:]]*Stable tag:' readme.txt | sed -E 's/.*Stable tag: *//' | tr -d '\r ')
 [ -n "$VERSION" ] || { echo "✖ Could not read Version: from $MAIN_FILE"; exit 1; }
 [ "$VERSION" = "$STABLE" ] || { echo "✖ $MAIN_FILE Version ($VERSION) ≠ readme.txt Stable tag ($STABLE)"; exit 1; }
+CONST=$(grep -m1 -E "define\( *'[A-Z_]+_VERSION'" "$MAIN_FILE" | grep -oE "'[0-9]+\.[0-9]+\.[0-9]+'" | tr -d "'")   # cache-busts the assets
+[ -z "$CONST" ] || [ "$CONST" = "$VERSION" ] || { echo "✖ $MAIN_FILE _VERSION define ($CONST) ≠ Version header ($VERSION) — update the define too"; exit 1; }
 [ -f build/index.asset.php ] || { echo "✖ build/ is missing or stale — run: npm run bundle"; exit 1; }
 for p in "${SHIP[@]}"; do [ -e "$p" ] || { echo "✖ Shipping path missing: $p"; exit 1; }; done
 
@@ -48,11 +50,12 @@ else
 	git -C "$WT" rm -rfq --cached . >/dev/null 2>&1 || true
 fi
 
-# wipe everything except .git, then copy the shipping set
+# wipe everything except .git, then export the shipping set from the COMMIT
+# (git archive, not cp: untracked or ignored files in the working folder never
+# reach testing, so the tested tree is exactly HEAD)
 find "$WT" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-for p in "${SHIP[@]}" "${CI[@]}"; do [ -e "$p" ] && cp -R "$p" "$WT/"; done
-find "$WT" -name .DS_Store -delete
-printf 'node_modules\n*.zip\n.DS_Store\n' > "$WT/.gitignore"
+git archive --format=tar HEAD -- "${SHIP[@]}" "${CI[@]}" | tar -x -C "$WT"
+printf 'node_modules\n*.zip\n.DS_Store\n' > "$WT/.gitignore"   # stripped again from the release zip
 
 cd "$WT"
 git add -A
