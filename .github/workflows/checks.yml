@@ -51,9 +51,6 @@ on:
 permissions:
   contents: read   # cs2pr annotations only need the job log; no checks: write needed
 
-env:
-  WP_ENV: npx -y @wordpress/env@10
-
 jobs:
   # ---------------------------------------------------------------------------
   lint:
@@ -152,6 +149,7 @@ jobs:
         php: ['7.4', '8.3']
     env:
       SLUG: ${{ inputs.slug }}
+      WP_ENV: npx -y @wordpress/env@10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,7 +158,7 @@ jobs:
           persist-credentials: false
 
       - name: Start WordPress (wp-env, PHP ${{ matrix.php }})
-        uses: ./${{ inputs.slug }}/.github/actions/wp-env
+        uses: ./stepped-content/.github/actions/wp-env   # literal: `uses` can't take an expression; = ./<slug>/...
         with:
           php: ${{ matrix.php }}
           slug: ${{ inputs.slug }}
@@ -236,6 +234,7 @@ jobs:
         php: ['7.4', '8.3']
     env:
       SLUG: ${{ inputs.slug }}
+      WP_ENV: npx -y @wordpress/env@10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -263,7 +262,7 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Start WordPress (wp-env, PHP ${{ matrix.php }})
-        uses: ./${{ inputs.slug }}/.github/actions/wp-env
+        uses: ./stepped-content/.github/actions/wp-env   # literal: `uses` can't take an expression; = ./<slug>/...
         with:
           php: ${{ matrix.php }}
           slug: ${{ inputs.slug }}
@@ -315,6 +314,7 @@ jobs:
     timeout-minutes: 30
     env:
       SLUG: ${{ inputs.slug }}
+      WP_ENV: npx -y @wordpress/env@10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -323,7 +323,7 @@ jobs:
           persist-credentials: false
 
       - name: Start WordPress (wp-env, PHP 8.3)
-        uses: ./${{ inputs.slug }}/.github/actions/wp-env
+        uses: ./stepped-content/.github/actions/wp-env   # literal: `uses` can't take an expression; = ./<slug>/...
         with:
           php: '8.3'
           slug: ${{ inputs.slug }}
