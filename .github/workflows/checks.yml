@@ -11,7 +11,10 @@ name: Checks
 #   lint          PHPCompatibilityWP: no syntax/function newer than PHP 7.4
 #   plugin-check  WordPress.org's official Plugin Check (errors only)
 #   wpcli         WP-CLI smoke: install WP, activate, fire hooks, load pages,
-#                 deactivate/re-activate; fail on ANY PHP error in debug.log
+#                 deactivate/re-activate; fail on ANY PHP error in debug.log.
+#                 Runs on PHP 8.1 and 8.3: the wordpress:php7.4 / php8.0 images
+#                 are Debian 11, whose apt archive went away in Aug 2026, so
+#                 wp-env can no longer build them. 7.4 stays covered by lint.
 # Report-only (annotated, never fails):
 #   lint          WordPress coding standards (WPCS)
 
@@ -149,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['7.4', '8.3']
+        php: ['8.1', '8.3']   # see the wpcli note at the top: 7.4/8.0 images no longer build
     env:
       SLUG: ${{ inputs.slug }}
     steps:

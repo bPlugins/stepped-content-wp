@@ -12,7 +12,7 @@ Branches: `development` (all files, daily work) → `testing` (shipping files on
 1. On `development`: bump `Version:` and the `STP_VERSION` define in `index.php`, and `Stable tag:` + changelog in `readme.txt`. Commit.
 2. `npm run ship` → bundle, commit the rebuilt `build/` + `languages/`, push development, copy shipping files to `testing`, push.
    (`npm run push:testing` alone if you already bundled and committed.)
-3. Watch Actions → **Testing branch**: lint, PHP 7.4 compatibility, Plugin Check, WP-CLI smoke on PHP 7.4 + 8.3.
+3. Watch Actions → **Testing branch**: lint, PHP 7.4 compatibility, Plugin Check, WP-CLI smoke on PHP 8.1 + 8.3.
 4. Green → `npm run release` → tags `testing` as the version, fast-forwards `main`.
    Actions → **Release** re-runs the checks on the tag and publishes the GitHub Release
    (free plugin: also commits to WordPress.org SVN).
