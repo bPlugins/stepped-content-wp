@@ -69,8 +69,8 @@ test.describe('Stepped Content', () => {
 		await expect(steps, 'the template fills four steps').toHaveCount(4);
 		await expect(steps.first()).toContainText('Digital Marketing');
 
-		// The appender inserts a step directly (directInsert + defaultBlock)
-		await block.getByRole('button', { name: /add block/i }).first().click();
+		// The appender (labelled "Add step") inserts a step directly (directInsert + defaultBlock)
+		await block.getByRole('button', { name: /add (step|block)/i }).first().click();
 		await expect(steps).toHaveCount(5);
 
 		await page.getByRole('button', { name: 'Publish', exact: true }).click();
@@ -91,7 +91,8 @@ test.describe('Stepped Content', () => {
 		await page.goto('/wp-admin/');
 		const nonce = await (await page.request.get('/wp-admin/admin-ajax.php?action=rest-nonce')).text();
 
-		const created = await page.request.post('/wp-json/wp/v2/posts', {
+		// ?rest_route= works with plain permalinks too (wp-env's default), /wp-json/ does not
+		const created = await page.request.post('/?rest_route=/wp/v2/posts', {
 			headers: { 'X-WP-Nonce': nonce.trim() },
 			data: { title: 'E2E REST post', status: 'publish', content: BLOCK_MARKUP }
 		});
