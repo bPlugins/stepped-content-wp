@@ -30,7 +30,6 @@ jobs:
     with:
       slug: stepped-content
       main_file: index.php
-      phpcs_ignore: '*/node_modules/*'
       plugin_check_blocking: true
     secrets: inherit
 
@@ -71,14 +70,15 @@ jobs:
           fi
           echo "tags/$VERSION is free on WordPress.org"
 
-      # The tag's tree is already the shipping set; only CI files are stripped.
+      # The tag's tree is already the shipping set; only CI and test files are stripped.
       - name: Stage distribution tree + zip
         id: dist
         env:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
           rm -rf dist && mkdir -p "dist/$SLUG"
-          rsync -a --exclude='.git' --exclude='.github' --exclude='.gitignore' --exclude='.DS_Store' "$SLUG/" "dist/$SLUG/"
+          rsync -a --exclude='.git' --exclude='.github' --exclude='.gitignore' --exclude='.DS_Store' \
+            --exclude='tests' --exclude='phpcs.xml.dist' "$SLUG/" "dist/$SLUG/"
           ZIP="$SLUG-$VERSION.zip"
           (cd dist && zip -rq "../$ZIP" "$SLUG")
           echo "zip=$ZIP" >> "$GITHUB_OUTPUT"

@@ -12,11 +12,14 @@
  * Requires at least: 6.5
  * Tested up to: 7.1
  * Requires PHP: 7.4
+ *
  * @fs_free_only /vendor/freemius-lite, /includes/fs-lite.php
  */
 
 // ABS PATH
-if ( !defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 if ( function_exists( 'stp_fs' ) ) {
 	stp_fs()->set_basename( true, __FILE__ );
@@ -29,7 +32,7 @@ if ( function_exists( 'stp_fs' ) ) {
 	require_once STP_DIR_PATH . 'includes/GetCSS.php';
 	require_once STP_DIR_PATH . 'includes/admin/SubMenu.php';
 
-	if( !class_exists( 'STPPlugin' ) ) {
+	if ( ! class_exists( 'STPPlugin' ) ) {
 		/**
 		 * STPPlugin Class.
 		 * Main initialization class for the Stepped Content plugin.
@@ -41,20 +44,20 @@ if ( function_exists( 'stp_fs' ) ) {
 			 * Constructor.
 			 * Sets up hooks for initializing the plugin, registering assets, and default templates.
 			 */
-			public function __construct(){
-				add_action( 'init', [$this, 'onInit'] );
-				add_action( 'admin_enqueue_scripts', [$this, 'adminEnqueueScripts'] );
-				add_action( 'enqueue_block_editor_assets', [$this, 'enqueueBlockEditorAssets'] );
+			public function __construct() {
+				add_action( 'init', [ $this, 'onInit' ] );
+				add_action( 'admin_enqueue_scripts', [ $this, 'adminEnqueueScripts' ] );
+				add_action( 'enqueue_block_editor_assets', [ $this, 'enqueueBlockEditorAssets' ] );
 
-				add_filter( 'plugin_action_links', [$this, 'pluginActionLinks'], 10, 2 );
-				add_filter( 'default_title', [$this, 'defaultTitle'], 10, 2 );
-				add_filter( 'default_content', [$this, 'defaultContent'], 10, 2 );
+				add_filter( 'plugin_action_links', [ $this, 'pluginActionLinks' ], 10, 2 );
+				add_filter( 'default_title', [ $this, 'defaultTitle' ], 10, 2 );
+				add_filter( 'default_content', [ $this, 'defaultContent' ], 10, 2 );
 			}
-			
+
 			/**
 			 * Filters the default post title to set custom title if requested via URL with nonce verification.
 			 *
-			 * @param string $title The default post title.
+			 * @param string   $title The default post title.
 			 * @param \WP_Post $post The post object.
 			 * @return string The filtered post title.
 			 */
@@ -72,7 +75,7 @@ if ( function_exists( 'stp_fs' ) ) {
 			/**
 			 * Filters the default post content to set custom block markup if requested via URL with nonce verification.
 			 *
-			 * @param string $content The default post content.
+			 * @param string   $content The default post content.
 			 * @param \WP_Post $post The post object.
 			 * @return string The filtered post content.
 			 */
@@ -92,16 +95,16 @@ if ( function_exists( 'stp_fs' ) ) {
 			 * Adds a "Help & Demos" action link.
 			 *
 			 * @param string[] $links An array of plugin action links.
-			 * @param string $file Path to the plugin file relative to the plugins directory.
+			 * @param string   $file Path to the plugin file relative to the plugins directory.
 			 * @return string[] The filtered plugin action links.
 			 */
 			public function pluginActionLinks( $links, $file ) {
-				if( plugin_basename( __FILE__ ) === $file ) {
+				if ( plugin_basename( __FILE__ ) === $file ) {
 					$helpDemosLink = admin_url( 'tools.php?page=stepped-content#/pricing' );
 
 					$links['help-and-demos'] = sprintf( '<a href="%s" style="%s">%s</a>', $helpDemosLink, 'color:#FF7A00;font-weight:bold', __( 'Help & Demos', 'stepped-content' ) );
 				}
-	
+
 				return $links;
 			}
 
@@ -111,7 +114,7 @@ if ( function_exists( 'stp_fs' ) ) {
 			 *
 			 * @return void
 			 */
-			public function onInit(){
+			public function onInit() {
 				register_block_type( __DIR__ . '/build/content' );
 				register_block_type( __DIR__ . '/build/step' );
 
@@ -129,7 +132,7 @@ if ( function_exists( 'stp_fs' ) ) {
 			 * @return void
 			 */
 			public function adminEnqueueScripts( $hook ) {
-				if( strpos( $hook, 'stepped-content' ) ){
+				if ( strpos( $hook, 'stepped-content' ) ) {
 					wp_enqueue_style( 'stp-admin-dashboard', STP_DIR_URL . 'build/admin/dashboard.css', [], STP_VERSION );
 
 					$asset_file = include STP_DIR_PATH . 'build/admin/dashboard.asset.php';
@@ -143,7 +146,7 @@ if ( function_exists( 'stp_fs' ) ) {
 			 *
 			 * @return void
 			 */
-			public function enqueueBlockEditorAssets(){
+			public function enqueueBlockEditorAssets() {
 				wp_add_inline_script( 'stp-content-editor-script', 'const stppricingurl = "tools.php?page=stepped-content#/pricing"', 'before' );
 			}
 
@@ -152,17 +155,22 @@ if ( function_exists( 'stp_fs' ) ) {
 			 *
 			 * @return void
 			 */
-			public static function renderDashboard(){ ?>
-				<div
-					id='stpDashboard'
-					data-info='<?php echo esc_attr( wp_json_encode( [
+			public static function renderDashboard() {
+				$stpInfo = wp_json_encode(
+					[
 						'version' => STP_VERSION,
 						'adminUrl' => admin_url(),
-						'startUrl' => admin_url( 'post-new.php?post_type=page&title=' . rawurlencode( 'Stepped Content' ) . '&content=' . rawurlencode( '<!-- wp:stp/content /-->' ) . '&nonce=' . wp_create_nonce( 'stpCreatePage' ) )
-					] ) ); ?>'
+						'startUrl' => admin_url( 'post-new.php?post_type=page&title=' . rawurlencode( 'Stepped Content' ) . '&content=' . rawurlencode( '<!-- wp:stp/content /-->' ) . '&nonce=' . wp_create_nonce( 'stpCreatePage' ) ),
+					]
+				);
+				?>
+				<div
+					id='stpDashboard'
+					data-info='<?php echo esc_attr( $stpInfo ); ?>'
 				></div>
-			<?php }
+				<?php
+			}
 		}
-		new STPPlugin;
+		new STPPlugin();
 	}
 }

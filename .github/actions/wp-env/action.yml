@@ -1,0 +1,123 @@
+name: Start wp-env
+description: >
+  Starts a WordPress environment (wp-env) with the plugin active, on the given PHP
+  version. Pre-seeds the Docker images from a cache or AWS's mirror of the official
+  images, so `wp-env start` never depends on anonymous Docker Hub pulls, and patches
+  the PHP 7.4 / 8.0 images whose Debian 11 apt archive is gone.
+
+inputs:
+  php:
+    description: PHP version for the wordpress and cli images (7.4, 8.1, 8.3, ...)
+    required: true
+  slug:
+    description: Plugin folder in the workspace, mounted as the plugin under test
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    # wp-env config is generated here, not committed: the shipping tree stays free of dev files.
+    - name: Write wp-env config
+      shell: bash
+      env:
+        PHP_VERSION: ${{ inputs.php }}
+        SLUG: ${{ inputs.slug }}
+      run: |
+        cat > .wp-env.json <<EOF
+        {
+          "phpVersion": "$PHP_VERSION",
+          "plugins": [ "./$SLUG" ],
+          "config": { "WP_DEBUG": true, "WP_DEBUG_LOG": true, "WP_DEBUG_DISPLAY": false, "SCRIPT_DEBUG": false }
+        }
+        EOF
+        cat .wp-env.json
+
+    # Anonymous Docker Hub pulls from shared runner IPs get rate-limited and time out. Route them
+    # through Google's public mirror; Docker falls back to Docker Hub when the mirror misses.
+    - name: Route Docker Hub pulls through a mirror
+      shell: bash
+      run: |
+        sudo mkdir -p /etc/docker
+        if [ -s /etc/docker/daemon.json ]; then
+          sudo jq '. + {"registry-mirrors": ["https://mirror.gcr.io"]}' /etc/docker/daemon.json | sudo tee /etc/docker/daemon.json.tmp >/dev/null
+          sudo mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
+        else
+          echo '{ "registry-mirrors": ["https://mirror.gcr.io"] }' | sudo tee /etc/docker/daemon.json >/dev/null
+        fi
+        sudo systemctl restart docker
+        for i in $(seq 1 15); do docker info >/dev/null 2>&1 && break; sleep 1; done
+
+    # The ISO week in the key stops the floating tags (lts, latest) from being pinned forever.
+    - name: Compute image list and cache key
+      id: images
+      shell: bash
+      env:
+        PHP_VERSION: ${{ inputs.php }}
+      run: |
+        echo "list=mariadb:lts phpmyadmin:latest wordpress:php$PHP_VERSION wordpress:cli-php$PHP_VERSION" >> "$GITHUB_OUTPUT"
+        echo "key=wp-env-images-v1-php$PHP_VERSION-$(date +%G-%V)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Docker images from cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/wp-env-images
+        key: ${{ steps.images.outputs.key }}
+
+    # wordpress:php7.4 and php8.0 are frozen on Debian 11, whose apt archive was retired in
+    # Aug 2026, so wp-env's `apt-get install $PHPIZE_DEPS` build step 404s. wp-env offers no
+    # Dockerfile hook, so the base image is rebuilt under its own tag with apt pointed at
+    # archive.debian.org; wp-env's `FROM wordpress:php7.4` then picks that up. The RUN is a
+    # no-op on Debian 12 images (8.1+). It runs after the cache load or pull and before the
+    # save, so the cache carries the patched image.
+    - name: Pre-seed Docker images
+      shell: bash
+      env:
+        IMAGES: ${{ steps.images.outputs.list }}
+        PHP_VERSION: ${{ inputs.php }}
+      run: |
+        TAR="$HOME/.cache/wp-env-images/images.tar"
+        complete=false
+        if [ -f "$TAR" ]; then
+          docker load -i "$TAR"
+        else
+          mkdir -p "$(dirname "$TAR")"
+          complete=true
+          for img in $IMAGES; do
+            pulled=false
+            for attempt in 1 2 3; do
+              if docker pull "public.ecr.aws/docker/library/$img"; then pulled=true; break; fi
+              sleep 15
+            done
+            if [ "$pulled" = true ]; then
+              docker tag "public.ecr.aws/docker/library/$img" "$img"
+              docker rmi "public.ecr.aws/docker/library/$img" >/dev/null
+            else
+              echo "::warning::could not pre-seed $img from the ECR mirror; wp-env will pull it from Docker Hub"
+              complete=false
+            fi
+          done
+        fi
+        WP_IMAGE="wordpress:php$PHP_VERSION"
+        if docker image inspect "$WP_IMAGE" >/dev/null 2>&1; then
+          docker build -t "$WP_IMAGE" - <<EOF
+        FROM $WP_IMAGE
+        RUN if grep -qs bullseye /etc/apt/sources.list; then \
+                sed -i -e 's|deb.debian.org|archive.debian.org|g' -e 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list \
+                && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99-archive; \
+            fi
+        EOF
+        fi
+        if [ "$complete" = true ]; then docker save -o "$TAR" $IMAGES; fi
+        docker image ls
+
+    - name: Start WordPress environment
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 10
+        max_attempts: 2
+        command: npx -y @wordpress/env@10 start

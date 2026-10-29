@@ -1,2 +1,5 @@
 node_modules
 *.zip
+tests/php/vendor
+tests/php/junit.xml
+tests/php/.phpunit.result.cache

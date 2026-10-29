@@ -1,7 +1,9 @@
 <?php
 namespace STP;
 
-if ( ! defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * GetCSS class.
@@ -13,7 +15,7 @@ class GetCSS {
 	/**
 	 * Formats and validates a CSS property-value pair.
 	 *
-	 * @param string $property The CSS property name (e.g., 'background-color').
+	 * @param string     $property The CSS property name (e.g., 'background-color').
 	 * @param string|int $value The CSS property value.
 	 * @return string The formatted CSS property line, or empty string if value is empty.
 	 */
@@ -28,9 +30,9 @@ class GetCSS {
 	 * Generates CSS rules for background settings based on attributes.
 	 *
 	 * @param array $bg Background attributes containing type, color, gradient, image, etc.
-	 * @param bool $isSolid Whether solid background color is allowed. Default true.
-	 * @param bool $isGradient Whether gradient background is allowed. Default true.
-	 * @param bool $isImage Whether image background is allowed. Default true.
+	 * @param bool  $isSolid Whether solid background color is allowed. Default true.
+	 * @param bool  $isGradient Whether gradient background is allowed. Default true.
+	 * @param bool  $isImage Whether image background is allowed. Default true.
 	 * @return string The generated background CSS styles.
 	 */
 	public static function getBackgroundCSS( $bg, $isSolid = true, $isGradient = true, $isImage = true ) {

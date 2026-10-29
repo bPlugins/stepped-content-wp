@@ -10,7 +10,7 @@
 set -euo pipefail
 
 SHIP=(build includes languages vendor index.php readme.txt)   # keep in sync with package.json "zip"
-CI=(.github)                                                   # workflows must exist on the pushed branch
+CI=(.github tests phpcs.xml.dist)                             # workflows + tests ride along; release.yml strips them from the zip
 SRC_BRANCH=development
 DST_BRANCH=testing
 MAIN_FILE=index.php

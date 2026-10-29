@@ -1,7 +1,9 @@
 <?php
 namespace STP\Admin;
 
-if ( !defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * SubMenu class.
@@ -23,11 +25,11 @@ class SubMenu {
 	 *
 	 * @return void
 	 */
-	public function adminMenu(){
+	public function adminMenu() {
 		add_submenu_page(
 			'tools.php',
-			__('Stepped Content - bPlugins', 'stepped-content'),
-			__('Stepped Content', 'stepped-content'),
+			__( 'Stepped Content - bPlugins', 'stepped-content' ),
+			__( 'Stepped Content', 'stepped-content' ),
 			'manage_options',
 			'stepped-content',
 			[ \STPPlugin::class, 'renderDashboard' ]
