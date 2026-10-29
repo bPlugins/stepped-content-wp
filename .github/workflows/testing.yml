@@ -1,12 +1,19 @@
 name: Testing branch
 
-# `npm run push:testing` copies the shipping files from `development` to the
-# `testing` branch and pushes. Every push here runs the full gate set.
+# `npm run push:testing` copies the shipping files (+ tests/) from `development`
+# to the `testing` branch and pushes. Every push here runs the full gate set.
 # Green → `npm run release` tags this exact tree.
+#
+# The weekly run re-tests the last pushed `testing` tree against whatever
+# WordPress wp-env installs today, so a WordPress release that breaks the plugin
+# shows up before users report it. GitHub only fires schedules from the default
+# branch, so this file must exist there.
 
 on:
   push:
     branches: [testing]
+  schedule:
+    - cron: '0 3 * * 1'   # Mondays 03:00 UTC
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +30,7 @@ jobs:
     with:
       slug: stepped-content
       main_file: index.php
-      phpcs_ignore: '*/node_modules/*'
+      ref: ${{ github.event_name == 'schedule' && 'testing' || '' }}
       plugin_check_blocking: true
     secrets: inherit
 
@@ -35,9 +42,14 @@ jobs:
     steps:
       - env:
           RESULT: ${{ needs.checks.result }}
+          EVENT: ${{ github.event_name }}
         run: |
           if [ "$RESULT" = "success" ]; then
-            echo "✅ testing @ ${GITHUB_SHA::7} passed every check. Run \`npm run release\` from development to tag it." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$EVENT" = "schedule" ]; then
+              echo "✅ Weekly run: the last tested \`testing\` tree still passes on today's WordPress." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "✅ testing @ ${GITHUB_SHA::7} passed every check. Run \`npm run release\` from development to tag it." >> "$GITHUB_STEP_SUMMARY"
+            fi
           else
             echo "❌ Checks: $RESULT — fix on development, then \`npm run push:testing\` again." >> "$GITHUB_STEP_SUMMARY"; exit 1
           fi

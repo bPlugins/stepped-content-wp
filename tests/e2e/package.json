@@ -1,0 +1,13 @@
+{
+	"name": "stepped-content-e2e",
+	"private": true,
+	"description": "Playwright end-to-end tests for Stepped Content. Dev-only: installed in CI, never shipped.",
+	"scripts": {
+		"test": "playwright test",
+		"test:headed": "playwright test --headed",
+		"report": "playwright show-report"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.59.1"
+	}
+}

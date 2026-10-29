@@ -1,5 +1,7 @@
 <?php
-if ( !defined( 'ABSPATH' ) ) { exit; }
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 use STP\GetCSS;
 
@@ -12,7 +14,7 @@ $stpStep			= $attributes['step'] ?? 1;
 
 $stpStepCSS = "
 	#$stpId .instructions{
-		". GetCSS::getBackgroundCSS( $stpBackground ) ."
+		" . GetCSS::getBackgroundCSS( $stpBackground ) . "
 	}
 	#$stpId .instructions .instructionTitle,
 	#$stpId .instructions .instructionContent{
@@ -27,11 +29,11 @@ $stpStepCSS = "
 	<style><?php echo esc_html( $stpStepCSS ); ?></style>
 
 	<div class='instructions'>
-		<?php if( $stpIsTitle ) { ?>
+		<?php if ( $stpIsTitle ) { ?>
 			<h2 class='instructionTitle'>
 				<?php echo esc_html( $stpStep ); ?>. <?php echo esc_html( $stpTitle ); ?>
 			</h2>
-		<?php } else {} ?>
+		<?php } ?>
 
 		<div class='instructionContent'>
 			<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rendered inner blocks, each escaped by its own block; kses would strip inline SVG and forms. ?>

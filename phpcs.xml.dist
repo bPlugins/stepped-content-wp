@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="Stepped Content">
+	<description>WordPress coding standards with the bPlugins house style (camelCase names, short arrays, tab-aligned assignments).</description>
+
+	<!-- Sniff the shipping tree. `phpcs` with no arguments uses this. -->
+	<file>.</file>
+
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*.asset.php</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="7.4-"/>
+
+	<rule ref="WordPress">
+		<!-- House style: camelCase variables and methods, PascalCase class files -->
+		<exclude name="WordPress.NamingConventions.ValidVariableName"/>
+		<exclude name="WordPress.NamingConventions.ValidFunctionName"/>
+		<exclude name="WordPress.Files.FileName"/>
+
+		<!-- House style: short array syntax and tab-aligned assignments -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.WhiteSpace.DisallowInlineTabs"/>
+		<exclude name="Generic.Formatting.MultipleStatementAlignment"/>
+		<exclude name="WordPress.Arrays.MultipleStatementAlignment"/>
+
+		<!-- Class and method docblocks are required; a file-level docblock is not -->
+		<exclude name="Squiz.Commenting.FileComment"/>
+		<exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
+	</rule>
+
+	<!-- Everything newer than the declared minimum PHP is an error -->
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="stepped-content"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

@@ -1,0 +1,15 @@
+{
+	"name": "bplugins/stepped-content-tests",
+	"description": "PHPUnit for Stepped Content. Dev-only: lives under tests/ so nothing here reaches the plugin's shipped vendor/ folder.",
+	"license": "GPL-3.0-or-later",
+	"require-dev": {
+		"phpunit/phpunit": "^9.6",
+		"yoast/phpunit-polyfills": "^3.0"
+	},
+	"config": {
+		"platform": {
+			"php": "7.4.33"
+		},
+		"sort-packages": true
+	}
+}
