@@ -44,7 +44,7 @@ class BlocksTest extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'attributes', $props );
 		$this->assertArrayHasKey( 'content', $props );
 		$this->assertStringContainsString( 'stpStep', $props['content'], 'The rendered steps travel inside the props' );
-		$this->assertStringContainsString( '<p>hello</p>', $props['content'] );
+		$this->assertMatchesRegularExpression( '/<p[^>]*>hello<\/p>/', $props['content'] );
 	}
 
 	public function test_step_block_renders_title_and_inner_content() {
@@ -52,11 +52,11 @@ class BlocksTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'stpStep', $html );
 		$this->assertMatchesRegularExpression( '/<h2 class=\'instructionTitle\'>\s*3\. Setup\s*<\/h2>/', $html );
-		$this->assertStringContainsString( '<p>inner</p>', $html );
+		$this->assertMatchesRegularExpression( '/<p[^>]*>inner<\/p>/', $html, 'Inner blocks render inside the step' );
 	}
 
 	public function test_step_title_is_escaped() {
-		$html = do_blocks( '<!-- wp:stp/step {"title":"<b>Bold</b> & "q""} --><!-- /wp:stp/step -->' );
+		$html = do_blocks( '<!-- wp:stp/step {"title":"<b>Bold</b> & \u0022q\u0022"} --><!-- /wp:stp/step -->' );
 
 		$this->assertStringNotContainsString( '<b>Bold</b>', $html );
 		$this->assertStringContainsString( '&lt;b&gt;Bold&lt;/b&gt; &amp; &quot;q&quot;', $html );
@@ -65,7 +65,7 @@ class BlocksTest extends WP_UnitTestCase {
 	public function test_step_title_can_be_hidden() {
 		$html = do_blocks( '<!-- wp:stp/step {"isTitle":false,"title":"Hidden"} --><!-- /wp:stp/step -->' );
 
-		$this->assertStringNotContainsString( 'instructionTitle', $html );
+		$this->assertStringNotContainsString( '<h2 class=\'instructionTitle\'>', $html, 'No heading; the scoped CSS may still name the class' );
 		$this->assertStringNotContainsString( 'Hidden', $html );
 	}
 

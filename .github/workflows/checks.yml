@@ -283,7 +283,8 @@ jobs:
           for tc in ET.parse(path).iter('testcase'):
               for kind in ('failure', 'error'):
                   for node in tc.findall(kind):
-                      msg = (node.get('message') or node.text or '').strip().splitlines()[0][:400]
+                      text = (node.get('message') or '') + '\n' + (node.text or '')
+                      msg = ' | '.join(l.strip() for l in text.strip().splitlines() if l.strip())[:600]
                       f = os.path.relpath(tc.get('file', ''), os.getcwd()) if tc.get('file') else ''
                       print(f"::error file={f},line={tc.get('line', 1)},title={tc.get('class')}::{tc.get('name')}: {msg}")
           EOF
@@ -310,7 +311,7 @@ jobs:
   # ---------------------------------------------------------------------------
   e2e:
     name: Playwright e2e (PHP 8.3)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # ubuntu-latest is 26.04, which Playwright's --with-deps doesn't support yet
     timeout-minutes: 30
     env:
       SLUG: ${{ inputs.slug }}
