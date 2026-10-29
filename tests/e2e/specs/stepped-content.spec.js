@@ -4,7 +4,8 @@
 //  3. a post created through REST (no editor involved) hydrates on the front end
 const { test, expect } = require('@playwright/test');
 
-const BLOCK_MARKUP = '<!-- wp:stp/content --><!-- wp:stp/step {"title":"One"} --><!-- wp:paragraph --><p>first</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- wp:stp/step {"title":"Two"} --><!-- wp:paragraph --><p>second</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- /wp:stp/content -->';
+// `data` mirrors the steps: the editor derives it from the inner blocks and the front-end nav reads it
+const BLOCK_MARKUP = '<!-- wp:stp/content {"data":[{"step":1,"title":"One","duration":{"h":0,"m":1,"s":0}},{"step":2,"title":"Two","duration":{"h":0,"m":2,"s":0}},{"step":3,"title":"Three","duration":{"h":0,"m":1,"s":30}}]} --><!-- wp:stp/step {"title":"One"} --><!-- wp:paragraph --><p>first</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- wp:stp/step {"title":"Two"} --><!-- wp:paragraph --><p>second</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- wp:stp/step {"title":"Three"} --><!-- wp:paragraph --><p>third</p><!-- /wp:paragraph --><!-- /wp:stp/step --><!-- /wp:stp/content -->';
 
 // The post editor renders blocks inside an iframe when every registered block supports it; fall back to the page otherwise.
 const canvas = async page => {
@@ -75,9 +76,10 @@ test.describe('Stepped Content', () => {
 
 		await page.getByRole('button', { name: 'Publish', exact: true }).click();
 		await page.getByLabel('Editor publish').getByRole('button', { name: 'Publish', exact: true }).click();
-		const viewLink = page.getByRole('link', { name: /view post/i }).first();
-		await expect(viewLink).toBeVisible();
-		postUrl = await viewLink.getAttribute('href');
+		await expect(page.getByRole('link', { name: /view post/i }).first()).toBeVisible();
+		const postId = new URL(page.url()).searchParams.get('post');
+		expect(postId, 'editor URL carries the post id after publishing').toBeTruthy();
+		postUrl = `/?p=${postId}`;
 
 		expect(errors, 'uncaught JS errors in the editor').toEqual([]);
 	});
@@ -99,6 +101,6 @@ test.describe('Stepped Content', () => {
 		expect(created.ok(), await created.text()).toBeTruthy();
 		const { link } = await created.json();
 
-		await expectFrontEnd(page, link, 2);
+		await expectFrontEnd(page, link, 3);
 	});
 });
